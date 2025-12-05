@@ -1,0 +1,17 @@
+#!/bin/env bash
+
+urlencode_single_printf () {
+  string=$1; format=; set --
+  while [ -n "$string" ]; do
+    tail=${string#?}
+    head=${string%$tail}
+    case $head in
+      [-._~0-9A-Za-z]) format=$format%c; set -- "$@" "$head";;
+      *) format=$format%%%02x; set -- "$@" "'$head";;
+    esac
+    string=$tail
+  done
+  printf "$format\\n" "$@"
+}
+
+urlencode_single_printf $1
