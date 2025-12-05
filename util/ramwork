@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+
+# Create a temporary RAM-backed workspace in /dev/shm
+WORKDIR="/dev/shm/work_$$"
+mkdir -p "$WORKDIR"
+
+echo "🚀 RAM workspace created at: $WORKDIR"
+echo "Type 'exit' when you're done to clean it up."
+echo
+
+# Start an interactive subshell **inside** the RAM dir
+(
+    cd "$WORKDIR" || exit 1
+    bash --noprofile --norc -i
+)
+
+# Cleanup happens AFTER the subshell exits
+echo "🧹 Cleaning up RAM workspace: $WORKDIR"
+rm -rf "$WORKDIR"
+echo "Done."
+

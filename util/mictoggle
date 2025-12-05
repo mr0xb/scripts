@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+
+# Toggle microphone mute state using pactl (PulseAudio / PipeWire)
+# Requires: pactl, notify-send
+
+# Get default source (microphone)
+SRC=$(pactl info | awk -F': ' '/Default Source/ { print $2 }')
+
+if [[ -z "$SRC" ]]; then
+    notify-send "🎙️ Mic Toggle" "No microphone source found."
+    exit 1
+fi
+
+# Get current mute state: yes/no
+STATE=$(pactl get-source-mute "$SRC" | awk '{print $2}')
+
+if [[ "$STATE" == "yes" ]]; then
+    pactl set-source-mute "$SRC" 0
+    notify-send "🎙️ Microphone" "🔊 Unmuted"
+else
+    pactl set-source-mute "$SRC" 1
+    notify-send "🎙️ Microphone" "🔇 Muted"
+fi
+

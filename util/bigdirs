@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+
+# Show the largest directories within a target path (default: $HOME)
+TARGET="${1:-$HOME}"
+
+if [[ ! -d "$TARGET" ]]; then
+    echo "❌ '$TARGET' is not a directory."
+    echo "Usage: $0 [path]"
+    exit 1
+fi
+
+echo "🔎 Scanning: $TARGET"
+echo "📁 Top 10 largest directories:"
+echo
+
+du -h --max-depth=1 "$TARGET" 2>/dev/null \
+    | sort -hr \
+    | head -n 10

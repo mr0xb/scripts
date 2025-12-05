@@ -1,0 +1,35 @@
+#!/usr/bin/env bash
+
+# Preview an image in the terminal using viu or catimg
+
+if [[ -z "$1" ]]; then
+    echo "Usage: $0 <image-file>"
+    exit 1
+fi
+
+IMG="$1"
+
+if [[ ! -f "$IMG" ]]; then
+    echo "❌ File not found: $IMG"
+    exit 1
+fi
+
+# Preferred: viu (rust-based, supports many formats)
+if command -v viu >/dev/null 2>&1; then
+    viu "$IMG"
+    exit 0
+fi
+
+# Fallback: catimg
+if command -v catimg >/dev/null 2>&1; then
+    catimg "$IMG"
+    exit 0
+fi
+
+echo "❌ No compatible terminal image viewer installed."
+echo "Install one with:"
+echo "  sudo apt install catimg"
+echo "or"
+echo "  cargo install viu"
+exit 1
+

@@ -1,0 +1,33 @@
+#!/usr/bin/env bash
+
+# Temporary scratchpad that saves only if you choose to keep the note
+
+SCRATCHDIR="$HOME/Documents/notes"
+mkdir -p "$SCRATCHDIR"
+
+TMPFILE="$(mktemp)"
+vim "$TMPFILE"
+
+# If file is empty, discard automatically
+if [[ ! -s "$TMPFILE" ]]; then
+    echo "🧹 Scratchpad empty — discarded."
+    rm -f "$TMPFILE"
+    exit 0
+fi
+
+echo "📝 Scratchpad contents:"
+echo "----------------------------------"
+cat "$TMPFILE"
+echo "----------------------------------"
+
+read -p "Save this note? (y/N): " answer
+
+if [[ $answer =~ ^[Yy]$ ]]; then
+    OUTFILE="$SCRATCHDIR/note-$(date '+%Y-%m-%d_%H-%M-%S').txt"
+    mv "$TMPFILE" "$OUTFILE"
+    echo "✅ Saved to: $OUTFILE"
+else
+    rm -f "$TMPFILE"
+    echo "❌ Discarded."
+fi
+

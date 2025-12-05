@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+
+# Requires: arecord (ALSA utils)
+
+OUTDIR="$HOME/Documents/voice-notes"
+mkdir -p "$OUTDIR"
+
+FILENAME="note-$(date '+%Y-%m-%d_%H-%M-%S').wav"
+FILEPATH="$OUTDIR/$FILENAME"
+
+echo "🎤 Recording... (Ctrl+C to stop)"
+echo "Saving to: $FILEPATH"
+echo
+
+# Start recording: 16-bit PCM, 44.1 kHz, mono
+arecord -f cd -t wav -r 44100 -c 1 "$FILEPATH"
+

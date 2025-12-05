@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+
+# Interactive process killer using fzf
+# Requires: fzf
+
+if ! command -v fzf >/dev/null 2>&1; then
+    echo "❌ Error: fzf is required (sudo apt install fzf)"
+    exit 1
+fi
+
+# List processes with PID, CPU, MEM, command
+SELECTED=$(ps -eo pid,%cpu,%mem,cmd --sort=-%cpu | \
+    fzf --header="Select a process to kill" --prompt="Search > ")
+
+# If nothing selected, exit
+[[ -z "$SELECTED" ]] && echo "No process selected." && exit 0
+
+# Extract PID (first column)
+PID=$(echo "$SELECTED" | awk '{print $1}')
+
+echo "⚠️  Killing PID $PID..."
+kill "$PID" 2>/dev/null
+
+if [[ $? -eq 0 ]]; then
+    echo "✅ Successfully killed PID $PID"
+else
+    echo "❌ Failed to kill PID $PID (try sudo?)"
+fi
+

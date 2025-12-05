@@ -1,0 +1,33 @@
+#!/usr/bin/env bash
+
+# Save current clipboard text to a timestamped file
+
+# Supports both X11 (xclip) and Wayland (wl-paste)
+
+OUTDIR="$HOME/Documents/clips"
+mkdir -p "$OUTDIR"
+
+# Detect paste command
+if command -v wl-paste >/dev/null 2>&1; then
+    CLIP=$(wl-paste)
+elif command -v xclip >/dev/null 2>&1; then
+    CLIP=$(xclip -selection clipboard -o)
+else
+    echo "❌ No clipboard tool found (need wl-paste or xclip)"
+    exit 1
+fi
+
+# If clipboard is empty, ignore
+if [[ -z "$CLIP" ]]; then
+    echo "📭 Clipboard is empty — nothing saved."
+    exit 0
+fi
+
+FILENAME="clip-$(date '+%Y-%m-%d_%H-%M-%S').txt"
+FILEPATH="$OUTDIR/$FILENAME"
+
+echo "$CLIP" > "$FILEPATH"
+
+echo "📎 Clipboard saved to:"
+echo "   $FILEPATH"
+

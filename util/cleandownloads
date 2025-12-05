@@ -1,0 +1,40 @@
+#!/usr/bin/env bash
+
+# Automatically organize your ~/Downloads folder by file type and age.
+# Default age: 7 days (change DAYS= value)
+
+DOWNLOADS="$HOME/Downloads"
+DAYS=7
+
+declare -A FOLDERS=(
+  ["Images"]="jpg jpeg png gif svg bmp tif tiff webp"
+  ["Videos"]="mp4 mkv mov avi webm m4v"
+  ["Docs"]="pdf txt md doc docx xls xlsx ppt pptx odt"
+  ["Archives"]="zip tar gz bz2 xz rar 7z"
+)
+
+mkdir -p "$DOWNLOADS"/{Images,Videos,Docs,Archives,Other}
+
+find "$DOWNLOADS" -maxdepth 1 -type f -mtime +"$DAYS" | while read -r file; do
+    ext="${file##*.}"
+    moved=false
+
+    for folder in "${!FOLDERS[@]}"; do
+        for pattern in ${FOLDERS[$folder]}; do
+            if [[ "$ext" == "$pattern" ]]; then
+                mv "$file" "$DOWNLOADS/$folder/"
+                echo "Moved: $(basename "$file") → $folder"
+                moved=true
+                break 2
+            fi
+        done
+    done
+
+    if ! $moved; then
+        mv "$file" "$DOWNLOADS/Other/"
+        echo "Moved: $(basename "$file") → Other"
+    fi
+done
+
+echo "Cleanup done!"
+
