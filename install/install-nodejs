@@ -1,0 +1,83 @@
+#!/usr/bin/env bash
+
+# Installs the latest NodeJS release into $TARGETDIR (default: ~/.local)
+
+true "${TARGETDIR:="$HOME/.local"}"
+
+UNAME=$(uname -s)
+case "${UNAME}" in
+	Linux*) CURR_OS=LINUX;;
+	Darwin*) CURR_OS=MAC;;
+	*) CURR_OS=UNK;;
+esac
+
+get_latest_release() {
+  curl --silent "https://api.github.com/repos/$1/releases/latest" | # Get latest release from GitHub api
+    jq -r '.tag_name'
+}
+
+get_latest_release_tarball() {
+  curl --silent "https://api.github.com/repos/$1/releases/latest" | # Get latest release from GitHub api
+    jq -r '.tarball_url'
+}
+
+fetch() {
+	local filename
+	filename="$(lookup_file)"
+	[[ -z "$filename" ]] && echo "unable to fetch filename" 1>&2 && return 1
+	local path="/tmp/$filename"
+	[[ -n "$DOWNLOADS" ]] && [[ -d "$DOWNLOADS" ]] && path="$DOWNLOADS/$filename"
+	curl -L "https://go.dev/dl/$filename" -o "$path"
+	echo "$path"
+}
+
+install_latest_nodejs() {
+	#local dir="$1" path
+	#[[ -z "$dir" ]] && dir="$TARGETDIR"
+	#[[ -z "$dir" ]] && dir="$HOME/.local"
+	#mkdir -p "$dir" 2>/dev/null
+	#path="$(fetch)"
+	#[[ -z "$path" ]] && echo "unable to fetch go tarball" 1>&2 && return 1
+	#rm -rf "$dir/go" && tar -C "$dir" -xzf "$path" # rm is required by instructions
+	#echo "Add $dir/go/bin to your path and optionally set GOBIN=~/.local/bin" 1>&2
+	RELVERS=$(get_latest_release "nodejs/node")
+	TARBALL=$(get_latest_release_tarball "nodejs/node")
+	TMPDIR=$(mktemp -d)
+	if [ $? -ne 0 ]; then
+		echo "Error creating temp directory.."
+		exit 1;
+	fi
+
+	echo "Latest NodeJS from Github release is ${RELVERS}..."
+
+	echo "Downloading NodeJS ${RELVERS} from ${TARBALL}..."
+	curl -L "https://github.com/nodejs/node/archive/refs/tags/${RELVERS}.tar.gz" -o "${TMPDIR}/nodejs_${RELVERS}.tar.gz"
+	if [ $? -ne 0 ]; then
+		echo "Error downloading latest nodejs tarball.."
+		exit 1;
+	fi
+
+	mkdir "${TMPDIR}/nodejs"
+
+	tar -xf "nodejs_${RELVERS}.tar.gz" -C "${TMPDIR}/nodejs" --strip-components=1
+	if [ $? -ne 0 ]; then
+		echo "Error while trying to untar tarball ${TMPDIR}/nodejs_${RELVERS}.tar.gz"
+		exit 1
+	fi
+
+	cd "${TMPDIR}/nodejs"
+
+	./configure
+	if [ $? -ne 0 ]; then
+		echo "Error configuring build"
+		exit 1
+	fi
+
+	make
+	if [ $? -ne - ]; then
+		echo "Error running make"
+		exit 1
+	fi
+}
+
+install_latest_nodejs "$@"
